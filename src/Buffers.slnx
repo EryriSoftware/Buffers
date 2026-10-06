@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../README.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="stylecop.json" />
+    <File Path="StyleCop.ruleset" />
+  </Folder>
+  <Project Path="Buffers.Tests/Buffers.Tests.csproj" />
+  <Project Path="Buffers/Buffers.csproj" />
+  <Project Path="SampleApp/SampleApp.csproj" Id="f158ed2d-01d3-4ae4-98d2-3b9f524ade5e" />
+</Solution>
