@@ -2,7 +2,7 @@
 using Eryri.Buffers;
 using Eryri.Buffers.Extensions;
 
-using var writer = new PooledArrayBufferWriter<byte>();
+using var writer = new ArrayPoolBufferWriter<byte>();
 var id = Guid.NewGuid();
 
 writer.Write(42);

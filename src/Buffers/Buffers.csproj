@@ -10,7 +10,7 @@
 		<VerifyReferenceTrimCompatibility>true</VerifyReferenceTrimCompatibility>
 
 		<!-- NuGet Package Metadata -->
-		<Version>1.0.0</Version>
+		<Version>1.0.1</Version>
 		<PackageId>Eryri.Buffers</PackageId>
 		<Authors>Osian Linton</Authors>
 		<Description>Build binary data without constantly allocating temporary buffers. Eryri.Buffers provides pooled, growable buffers and low-allocation binary read/write extensions for .NET.</Description>

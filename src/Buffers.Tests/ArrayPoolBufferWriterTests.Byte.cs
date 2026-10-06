@@ -3,7 +3,7 @@ using FluentAssertions;
 
 namespace Eryri.Buffers.Tests;
 
-public class PooledArrayBufferWriterTests_Byte : PooledArrayBufferWriterTests<byte>
+public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
 {
     protected override void WriteData(IBufferWriter<byte> bufferWriter, int numBytes)
     {
@@ -23,7 +23,7 @@ public class PooledArrayBufferWriterTests_Byte : PooledArrayBufferWriterTests<by
     [TestCase(false)]
     public void WriteAndCopyToStream(bool clearContent)
     {
-        using var output = new PooledArrayBufferWriter<byte>();
+        using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
         using MemoryStream memStream = new (100);
@@ -71,7 +71,7 @@ public class PooledArrayBufferWriterTests_Byte : PooledArrayBufferWriterTests<by
     [TestCase(false)]
     public async Task WriteAndCopyToStreamAsync(bool clearContent)
     {
-        using var output = new PooledArrayBufferWriter<byte>();
+        using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
         using MemoryStream memStream = new (100);

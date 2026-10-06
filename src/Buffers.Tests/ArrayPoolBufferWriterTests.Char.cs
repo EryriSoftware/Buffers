@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Eryri.Buffers.Tests
 {
-    public class PooledArrayBufferWriterTests_Char : PooledArrayBufferWriterTests<char>
+    public class ArrayPoolBufferWriterTests_Char : ArrayPoolBufferWriterTests<char>
     {
         protected override void WriteData(IBufferWriter<char> bufferWriter, int numChars)
         {

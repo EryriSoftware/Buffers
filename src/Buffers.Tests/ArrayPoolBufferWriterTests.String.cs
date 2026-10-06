@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Eryri.Buffers.Tests;
 
-public class PooledArrayBufferWriterTests_String : PooledArrayBufferWriterTests<string>
+public class ArrayPoolBufferWriterTests_String : ArrayPoolBufferWriterTests<string>
 {
     protected override void WriteData(IBufferWriter<string> bufferWriter, int numStrings)
     {

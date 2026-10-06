@@ -16,7 +16,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<byte>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -35,7 +35,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<string>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
 
         // Act
         writer.Write(expected);
@@ -51,7 +51,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = "😀"[0];
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -70,7 +70,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<Guid>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -89,7 +89,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<bool>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -108,7 +108,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<short>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -127,7 +127,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<ushort>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -146,7 +146,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<int>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -165,7 +165,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<uint>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -184,7 +184,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<long>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -203,7 +203,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<ulong>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -222,7 +222,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<Half>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -241,7 +241,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<float>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -260,7 +260,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<double>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -279,7 +279,7 @@ internal class BufferWriterExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<decimal>();
-        using var writer = new PooledArrayBufferWriter<byte>(BufferSize);
+        using var writer = new ArrayPoolBufferWriter<byte>(BufferSize);
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act

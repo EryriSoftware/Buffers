@@ -6,7 +6,7 @@ namespace Eryri.Buffers;
 /// <summary>
 /// Represents a pooled, array-backed output sink into which <typeparam name="T"/> data can be written.
 /// </summary>
-public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
+public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
 {
     private T[] _rentedBuffer;
     private int _index;
@@ -14,24 +14,24 @@ public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
     private const int MinimumBufferSize = 256;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PooledArrayBufferWriter{T}"/> class,
+    /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,
     /// in which data can be written to, with the default initial capacity.
     /// </summary>
-    public PooledArrayBufferWriter()
+    public ArrayPoolBufferWriter()
     {
         _rentedBuffer = ArrayPool<T>.Shared.Rent(MinimumBufferSize);
         _index = 0;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PooledArrayBufferWriter{T}"/> class,
+    /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,
     /// in which data can be written to, with an initial capacity specified.
     /// </summary>
     /// <param name="initialCapacity">The minimum capacity with which to initialize the underlying buffer.</param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="initialCapacity"/> is not positive (i.e. less than or equal to 0).
     /// </exception>
-    public PooledArrayBufferWriter(int initialCapacity)
+    public ArrayPoolBufferWriter(int initialCapacity)
     {
         if (initialCapacity <= 0)
         {
@@ -109,7 +109,7 @@ public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// </summary>
     /// <remarks>
     /// <para>
-    /// You must reset or clear the <see cref="PooledArrayBufferWriter{T}"/> before trying to re-use it.
+    /// You must reset or clear the <see cref="ArrayPoolBufferWriter{T}"/> before trying to re-use it.
     /// </para>
     /// <para>
     /// The <see cref="ResetWrittenCount"/> method is faster since it only sets to zero the writer's index
@@ -137,7 +137,7 @@ public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// </summary>
     /// <remarks>
     /// <para>
-    /// You must reset or clear the <see cref="PooledArrayBufferWriter{T}"/> before trying to re-use it.
+    /// You must reset or clear the <see cref="ArrayPoolBufferWriter{T}"/> before trying to re-use it.
     /// </para>
     /// <para>
     /// If you reset the writer using the <see cref="ResetWrittenCount"/> method, the underlying buffer will not be cleared.
@@ -172,7 +172,7 @@ public sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
     private static void ThrowObjectDisposedException()
     {
 #if NET
-        throw new ObjectDisposedException(nameof(PooledArrayBufferWriter<T>));
+        throw new ObjectDisposedException(nameof(ArrayPoolBufferWriter<T>));
 #else
         throw new ObjectDisposedException(nameof(IBufferWriter<T>));
 #endif

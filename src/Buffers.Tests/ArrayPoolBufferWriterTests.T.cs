@@ -6,13 +6,13 @@ using FluentAssertions.Execution;
 
 namespace Eryri.Buffers.Tests;
 
-public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
+public abstract class ArrayPoolBufferWriterTests<T> where T : IEquatable<T>
 {
     [Test]
     public void ArrayBufferWriter_Ctor()
     {
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             output.FreeCapacity.Should().Be(256);
             output.Capacity.Should().Be(256);
             output.WrittenCount.Should().Be(0);
@@ -21,7 +21,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>(200);
+            using var output = new ArrayPoolBufferWriter<T>(200);
             output.FreeCapacity.Should().BeGreaterThanOrEqualTo(200);
             output.Capacity.Should().BeGreaterThanOrEqualTo(200);
             output.WrittenCount.Should().Be(0);
@@ -33,20 +33,20 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void Invalid_Ctor()
     {
-        FluentActions.Invoking(() => new PooledArrayBufferWriter<T>(0))
+        FluentActions.Invoking(() => new ArrayPoolBufferWriter<T>(0))
             .Should().Throw<ArgumentException>();
 
-        FluentActions.Invoking(() => new PooledArrayBufferWriter<T>(-1))
+        FluentActions.Invoking(() => new ArrayPoolBufferWriter<T>(-1))
             .Should().Throw<ArgumentException>();
 
-        FluentActions.Invoking(() => new PooledArrayBufferWriter<T>(int.MaxValue))
+        FluentActions.Invoking(() => new ArrayPoolBufferWriter<T>(int.MaxValue))
             .Should().Throw<OutOfMemoryException>();
     }
 
     [Test]
     public void Clear()
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         int previousAvailable = output.FreeCapacity;
         WriteData(output, 2);
         output.FreeCapacity.Should().BeLessThan(previousAvailable);
@@ -74,7 +74,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void ResetWrittenCount()
     {
-        using var output = new PooledArrayBufferWriter<T>(256);
+        using var output = new ArrayPoolBufferWriter<T>(256);
         int previousAvailable = output.FreeCapacity;
         WriteData(output, 2);
         output.FreeCapacity.Should().BeLessThan(previousAvailable);
@@ -103,7 +103,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void Advance()
     {
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             int capacity = output.Capacity;
             output.FreeCapacity.Should().Be(capacity);
             output.Advance(output.FreeCapacity);
@@ -112,7 +112,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             output.Advance(output.Capacity);
             output.WrittenCount.Should().Be(output.Capacity);
             output.FreeCapacity.Should().Be(0);
@@ -122,7 +122,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>(256);
+            using var output = new ArrayPoolBufferWriter<T>(256);
             WriteData(output, 2);
             ReadOnlyMemory<T> previousMemory = output.WrittenMemory;
             ReadOnlySpan<T> previousSpan = output.WrittenSpan;
@@ -134,7 +134,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             _ = output.GetSpan(20);
             WriteData(output, 10);
             ReadOnlyMemory<T> previousMemory = output.WrittenMemory;
@@ -152,7 +152,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void AdvanceZero()
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         WriteData(output, 2);
         output.WrittenCount.Should().Be(2);
         ReadOnlyMemory<T> previousMemory = output.WrittenMemory;
@@ -169,7 +169,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void InvalidAdvance()
     {
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             FluentActions.Invoking(() => output.Advance(-1))
                 .Should().Throw<ArgumentException>();
             FluentActions.Invoking(() => output.Advance(output.Capacity + 1))
@@ -177,7 +177,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             WriteData(output, 100);
             FluentActions.Invoking(() => output.Advance(output.FreeCapacity + 1))
                 .Should().Throw<InvalidOperationException>();
@@ -187,7 +187,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetSpan_DefaultCtor()
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         Span<T> span = output.GetSpan();
         span.Length.Should().Be(256);
     }
@@ -196,7 +196,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [TestCaseSource(nameof(SizeHints))]
     public void GetSpan_DefaultCtor_WithSizeHint(int sizeHint)
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         Span<T> span = output.GetSpan(sizeHint);
         span.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 256 ? 256 : sizeHint);
     }
@@ -204,7 +204,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetSpan_InitSizeCtor()
     {
-        using var output = new PooledArrayBufferWriter<T>(100);
+        using var output = new ArrayPoolBufferWriter<T>(100);
         Span<T> span = output.GetSpan();
         span.Length.Should().BeGreaterThanOrEqualTo(100);
     }
@@ -214,13 +214,13 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void GetSpan_InitSizeCtor_WithSizeHint(int sizeHint)
     {
         {
-            using var output = new PooledArrayBufferWriter<T>(256);
+            using var output = new ArrayPoolBufferWriter<T>(256);
             Span<T> span = output.GetSpan(sizeHint);
             span.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 256 ? 256 : sizeHint + 256);
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>(1000);
+            using var output = new ArrayPoolBufferWriter<T>(1000);
             Span<T> span = output.GetSpan(sizeHint);
             span.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 1000 ? 1000 : sizeHint + 1000);
         }
@@ -229,7 +229,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetMemory_DefaultCtor()
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         Memory<T> memory = output.GetMemory();
         memory.Length.Should().Be(256);
     }
@@ -238,7 +238,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [TestCaseSource(nameof(SizeHints))]
     public void GetMemory_DefaultCtor_WithSizeHint(int sizeHint)
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         Memory<T> memory = output.GetMemory(sizeHint);
         memory.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 256 ? 256 : sizeHint);
     }
@@ -246,7 +246,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetMemory_ExceedMaximumBufferSize_WithSmallStartingSize()
     {
-        using var output = new PooledArrayBufferWriter<T>(256);
+        using var output = new ArrayPoolBufferWriter<T>(256);
         FluentActions.Invoking(() => output.GetMemory(int.MaxValue))
             .Should().Throw<OverflowException>();
     }
@@ -254,7 +254,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetMemory_InitSizeCtor()
     {
-        using var output = new PooledArrayBufferWriter<T>(100);
+        using var output = new ArrayPoolBufferWriter<T>(100);
         Memory<T> memory = output.GetMemory();
         memory.Length.Should().BeGreaterThanOrEqualTo(100);
     }
@@ -264,13 +264,13 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void GetMemory_InitSizeCtor_WithSizeHint(int sizeHint)
     {
         {
-            using var output = new PooledArrayBufferWriter<T>(256);
+            using var output = new ArrayPoolBufferWriter<T>(256);
             Memory<T> memory = output.GetMemory(sizeHint);
             memory.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 256 ? 256 : sizeHint + 256);
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>(1000);
+            using var output = new ArrayPoolBufferWriter<T>(1000);
             Memory<T> memory = output.GetMemory(sizeHint);
             memory.Length.Should().BeGreaterThanOrEqualTo(sizeHint <= 1000 ? 1000 : sizeHint + 1000);
         }
@@ -280,7 +280,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void GetMemoryAndSpan()
     {
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             WriteData(output, 2);
             Span<T> span = output.GetSpan();
             Memory<T> memory = output.GetMemory();
@@ -295,7 +295,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             WriteData(output, 2);
             ReadOnlyMemory<T> writtenSoFarMemory = output.WrittenMemory;
             ReadOnlySpan<T> writtenSoFar = output.WrittenSpan;
@@ -334,7 +334,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void GetSpanShouldAtleastDoubleWhenGrowing()
     {
-        using var output = new PooledArrayBufferWriter<T>(256);
+        using var output = new ArrayPoolBufferWriter<T>(256);
         WriteData(output, 100);
         int previousAvailable = output.FreeCapacity;
 
@@ -349,7 +349,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     public void GetSpanOnlyGrowsAboveThreshold()
     {
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             _ = output.GetSpan();
             int previousAvailable = output.FreeCapacity;
 
@@ -361,7 +361,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
         }
 
         {
-            using var output = new PooledArrayBufferWriter<T>();
+            using var output = new ArrayPoolBufferWriter<T>();
             _ = output.GetSpan(10);
             int previousAvailable = output.FreeCapacity;
 
@@ -376,7 +376,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
     [Test]
     public void InvalidGetMemoryAndSpan()
     {
-        using var output = new PooledArrayBufferWriter<T>();
+        using var output = new ArrayPoolBufferWriter<T>();
         WriteData(output, 2);
         FluentActions.Invoking(() => output.GetSpan(-1))
             .Should().Throw<ArgumentException>();
@@ -392,7 +392,7 @@ public abstract class PooledArrayBufferWriterTests<T> where T : IEquatable<T>
             return;
         }
 
-        using var output = new PooledArrayBufferWriter<T>(300);
+        using var output = new ArrayPoolBufferWriter<T>(300);
         MemoryMarshal.TryGetArray(output.GetMemory(), out ArraySegment<T> array)
             .Should().BeTrue();
         GCHandle pinnedArray = GCHandle.Alloc(array.Array, GCHandleType.Pinned);
