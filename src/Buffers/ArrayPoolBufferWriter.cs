@@ -17,11 +17,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,
     /// in which data can be written to, with the default initial capacity.
     /// </summary>
-    public ArrayPoolBufferWriter()
-    {
-        _rentedBuffer = ArrayPool<T>.Shared.Rent(MinimumBufferSize);
-        _index = 0;
-    }
+    public ArrayPoolBufferWriter() : this(MinimumBufferSize) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,

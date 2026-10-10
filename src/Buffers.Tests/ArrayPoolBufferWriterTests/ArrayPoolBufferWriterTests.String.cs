@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Eryri.Buffers.Tests.ArrayPoolBufferWriter;
+namespace Eryri.Buffers.Tests.ArrayPoolBufferWriterTests;
 
 public class ArrayPoolBufferWriterTests_String : ArrayPoolBufferWriterTests<string>
 {

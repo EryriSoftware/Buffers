@@ -10,12 +10,12 @@
 		<VerifyReferenceTrimCompatibility>true</VerifyReferenceTrimCompatibility>
 
 		<!-- NuGet Package Metadata -->
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<PackageId>Eryri.Buffers</PackageId>
 		<Authors>Osian Linton</Authors>
 		<Description>Build binary data without constantly allocating temporary buffers. Eryri.Buffers provides pooled, growable buffers and low-allocation binary read/write extensions for .NET.</Description>
 		<PackageTags>
-			buffers;buffer;ibufferwriter;arraypool;pooled-buffer;memorypool;binary;serialization;binary-serialization;binary-reader;binary-writer;span;readonlyspan;low-allocation;high-performance;performance;dotnet;.net
+			buffers;buffer;ibufferwriter;memorystream;arraypool;pooled-buffer;memorypool;binary;serialization;binary-serialization;binary-reader;binary-writer;span;readonlyspan;low-allocation;high-performance;performance;dotnet;.net
 		</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/EryriSoftware/Buffers</PackageProjectUrl>

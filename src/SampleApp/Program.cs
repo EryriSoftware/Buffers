@@ -19,7 +19,7 @@ Debug.Assert(integer == 42, "Unable to write and read an integer");
 Debug.Assert(message == "Hello, World!", "Unable to write and read a string");
 Debug.Assert(guid == id, "Unable to write and read a guid");
 
-using var stream = new MemoryStream();
+using var stream = new MemoryPoolStream();
 stream.Write(writer.WrittenSpan);
 stream.Seek(0, SeekOrigin.Begin);
 
