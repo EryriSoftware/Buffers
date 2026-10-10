@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using FluentAssertions;
 
-namespace Eryri.Buffers.Tests;
+namespace Eryri.Buffers.Tests.ArrayPoolBufferWriter;
 
 public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
 {

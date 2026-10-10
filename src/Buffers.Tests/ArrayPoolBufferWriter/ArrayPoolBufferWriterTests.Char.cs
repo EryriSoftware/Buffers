@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
 
-namespace Eryri.Buffers.Tests
+namespace Eryri.Buffers.Tests.ArrayPoolBufferWriter
 {
     public class ArrayPoolBufferWriterTests_Char : ArrayPoolBufferWriterTests<char>
     {

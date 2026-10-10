@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using FluentAssertions;
 using FluentAssertions.Execution;
 
-namespace Eryri.Buffers.Tests;
+namespace Eryri.Buffers.Tests.ArrayPoolBufferWriter;
 
 public abstract class ArrayPoolBufferWriterTests<T> where T : IEquatable<T>
 {
