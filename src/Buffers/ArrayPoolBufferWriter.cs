@@ -6,8 +6,12 @@ namespace Eryri.Buffers;
 /// <summary>
 /// Represents a pooled, array-backed output sink into which <typeparam name="T"/> data can be written.
 /// </summary>
+/// <remarks>
+/// The maximum stream length is <see cref="int.MaxValue"/>.
+/// </remarks>
 public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
 {
+    private readonly bool _clearOnReturn;
     private T[] _rentedBuffer;
     private int _index;
 
@@ -17,27 +21,25 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,
     /// in which data can be written to, with the default initial capacity.
     /// </summary>
-    public ArrayPoolBufferWriter()
-    {
-        _rentedBuffer = ArrayPool<T>.Shared.Rent(MinimumBufferSize);
-        _index = 0;
-    }
+    public ArrayPoolBufferWriter(bool clearOnReturn = false) : this(MinimumBufferSize, clearOnReturn) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ArrayPoolBufferWriter{T}"/> class,
     /// in which data can be written to, with an initial capacity specified.
     /// </summary>
     /// <param name="initialCapacity">The minimum capacity with which to initialize the underlying buffer.</param>
-    /// <exception cref="ArgumentException">
+    /// <param name="clearOnReturn">Decides if the rented arrays are cleared when they're returned to the pool.</param>
+    /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="initialCapacity"/> is not positive (i.e. less than or equal to 0).
     /// </exception>
-    public ArrayPoolBufferWriter(int initialCapacity)
+    public ArrayPoolBufferWriter(int initialCapacity, bool clearOnReturn = false)
     {
         if (initialCapacity <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(initialCapacity), actualValue: initialCapacity, $"{nameof(initialCapacity)} ('{initialCapacity}') must be a non-negative and non-zero value.");
         }
 
+        _clearOnReturn = clearOnReturn;
         _rentedBuffer = ArrayPool<T>.Shared.Rent(initialCapacity);
         _index = 0;
     }
@@ -49,7 +51,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         get
         {
-            CheckIfDisposed();
+            ThrowIfDisposed();
             return _rentedBuffer.AsSpan(0, _index);
         }
     }
@@ -61,7 +63,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         get
         {
-            CheckIfDisposed();
+            ThrowIfDisposed();
             return _rentedBuffer.AsMemory(0, _index);
         }
     }
@@ -73,7 +75,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         get
         {
-            CheckIfDisposed();
+            ThrowIfDisposed();
             return _index;
         }
     }
@@ -85,7 +87,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         get
         {
-            CheckIfDisposed();
+            ThrowIfDisposed();
 
             return _rentedBuffer.Length;
         }
@@ -98,7 +100,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     {
         get
         {
-            CheckIfDisposed();
+            ThrowIfDisposed();
 
             return _rentedBuffer.Length - _index;
         }
@@ -119,15 +121,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// <seealso cref="ResetWrittenCount"/>
     public void Clear()
     {
-        CheckIfDisposed();
-
-        ClearHelper();
-    }
-
-    private void ClearHelper()
-    {
-        Debug.Assert(_rentedBuffer != null);
-
+        ThrowIfDisposed();
         _rentedBuffer.AsSpan(0, _index).Clear();
         _index = 0;
     }
@@ -156,27 +150,11 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
             return;
         }
 
-        ClearHelper();
-        ArrayPool<T>.Shared.Return(_rentedBuffer);
+        ArrayPool<T>.Shared.Return(_rentedBuffer, _clearOnReturn);
         _rentedBuffer = null!;
     }
 
-    private void CheckIfDisposed()
-    {
-        if (_rentedBuffer == null)
-        {
-            ThrowObjectDisposedException();
-        }
-    }
-
-    private static void ThrowObjectDisposedException()
-    {
-#if NET
-        throw new ObjectDisposedException(nameof(ArrayPoolBufferWriter<T>));
-#else
-        throw new ObjectDisposedException(nameof(IBufferWriter<T>));
-#endif
-    }
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_rentedBuffer == null, this);
 
     /// <summary>
     /// Notifies <see cref="IBufferWriter{T}"/> that <paramref name="count"/> amount of data was written to the output <see cref="Span{T}"/>/<see cref="Memory{T}"/>.
@@ -200,7 +178,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
             return;
         }
 
-        CheckIfDisposed();
+        ThrowIfDisposed();
         if (count < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(count), actualValue: count, $"{nameof(count)} ('{count}') must be a non-negative value.");
@@ -240,7 +218,7 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// </remarks>
     public Memory<T> GetMemory(int sizeHint = 0)
     {
-        CheckIfDisposed();
+        ThrowIfDisposed();
 
         CheckAndResizeBuffer(sizeHint);
         return _rentedBuffer.AsMemory(_index);
@@ -255,24 +233,27 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
     /// </exception>
     /// <remarks>
     /// <para>
-    /// This will never return an empty <see cref="Span{T}"/>.
+    /// This method never returns an empty <see cref="Span{T}"/>.
     /// </para>
     /// <para>
-    /// There is no guarantee that successive calls will return the same buffer or the same-sized buffer.
+    /// There is no guarantee that successive calls return the same underlying buffer or a span of the same length.
     /// </para>
     /// <para>
-    /// You must request a new buffer after calling Advance to continue writing more data and cannot write to a previously acquired buffer.
+    /// A call may resize the underlying buffer. Any previously obtained span or memory that refers to the buffer must not be used after a subsequent call to this method.
     /// </para>
     /// <para>
-    /// If you reset the writer using the <see cref="ResetWrittenCount"/> method, this method may return a non-cleared <see cref="Span{T}"/>.
+    /// The returned span covers the writable region beginning at the current written position. Its contents are not guaranteed to be initialized.
     /// </para>
     /// <para>
-    /// If you clear the writer using the <see cref="Clear"/> method, this method will return a <see cref="Span{T}"/> with its content zeroed.
+    /// After calling <see cref="ResetWrittenCount"/>, the contents of the underlying buffer are retained and may be exposed by subsequent calls.
+    /// </para>
+    /// <para>
+    /// After calling <see cref="Clear"/>, the previously written region is cleared. However, the entire returned span is not guaranteed to contain default values.
     /// </para>
     /// </remarks>
     public Span<T> GetSpan(int sizeHint = 0)
     {
-        CheckIfDisposed();
+        ThrowIfDisposed();
 
         CheckAndResizeBuffer(sizeHint);
         return _rentedBuffer.AsSpan(_index);
@@ -307,10 +288,8 @@ public sealed class ArrayPoolBufferWriter<T> : IBufferWriter<T>, IDisposable
             Debug.Assert(oldBuffer.Length >= _index);
             Debug.Assert(_rentedBuffer.Length >= _index);
 
-            var previousBuffer = oldBuffer.AsSpan(0, _index);
-            previousBuffer.CopyTo(_rentedBuffer);
-            previousBuffer.Clear();
-            ArrayPool<T>.Shared.Return(oldBuffer);
+            oldBuffer.AsSpan(0, _index).CopyTo(_rentedBuffer);
+            ArrayPool<T>.Shared.Return(oldBuffer, _clearOnReturn);
         }
 
         Debug.Assert(_rentedBuffer.Length - _index > 0);

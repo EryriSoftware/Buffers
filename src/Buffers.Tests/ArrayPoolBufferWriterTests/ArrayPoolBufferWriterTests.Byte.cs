@@ -1,7 +1,8 @@
 ﻿using System.Buffers;
+using Eryri.Buffers.Extensions;
 using FluentAssertions;
 
-namespace Eryri.Buffers.Tests;
+namespace Eryri.Buffers.Tests.ArrayPoolBufferWriterTests;
 
 public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
 {
@@ -26,7 +27,7 @@ public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
         using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
-        using MemoryStream memStream = new (100);
+        using var memStream = new MemoryPoolStream();
 
         output.WrittenCount.Should().Be(100);
 
@@ -74,7 +75,7 @@ public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
         using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
-        using MemoryStream memStream = new (100);
+        using var memStream = new MemoryPoolStream();
 
         output.WrittenCount.Should().Be(100);
 

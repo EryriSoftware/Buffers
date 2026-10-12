@@ -8,14 +8,13 @@ namespace Eryri.Buffers.Tests.Extensions;
 internal class StreamExtensionsTests
 {
     private Fixture fixture = new Fixture();
-    private const int BufferSize = 1 << 10; // 1 KiB
 
     [Test]
     public void Can_Write_And_Read_Byte()
     {
         // Arrange
         var expected = fixture.Create<byte>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -36,7 +35,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<string>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
 
         // Act
         stream.Write(expected);
@@ -54,7 +53,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = "😀"[0];
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -75,7 +74,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<Guid>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -96,7 +95,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<bool>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -104,9 +103,9 @@ internal class StreamExtensionsTests
         var writtenCount = stream.Position;
         stream.Seek(0, SeekOrigin.Begin);
         var actual = stream.ReadBoolean();
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
 
         // Assert
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
         allocated.Should().Be(0);
         stream.Position.Should().Be(writtenCount);
         actual.Should().Be(expected);
@@ -117,7 +116,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<short>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -138,7 +137,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<ushort>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -159,7 +158,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<int>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -180,7 +179,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<uint>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -201,7 +200,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<long>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -222,7 +221,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<ulong>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -243,7 +242,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<Half>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -264,7 +263,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<float>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -285,7 +284,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<double>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
@@ -306,7 +305,7 @@ internal class StreamExtensionsTests
     {
         // Arrange
         var expected = fixture.Create<decimal>();
-        using var stream = new MemoryStream(BufferSize);
+        using var stream = new MemoryPoolStream();
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         // Act
