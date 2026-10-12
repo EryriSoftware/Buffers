@@ -3,19 +3,13 @@ using FluentAssertions;
 
 namespace Eryri.Buffers.Tests.MemoryStreamTests;
 
-[TestFixtureSource(nameof(Types)), Parallelizable(ParallelScope.All)]
-internal class Stream_ToArrayTests(Type type)
+[TestFixture, Parallelizable(ParallelScope.All)]
+internal class Stream_ToArrayTests
 {
-    public static IEnumerable<TestFixtureData> Types()
-    {
-        yield return new TestFixtureData(typeof(MemoryPoolStream));
-        yield return new TestFixtureData(typeof(SequenceStream));
-    }
-
     [TestCaseSource(nameof(GetArraysVariedBySize))]
     public void ToArray_ZeroOffset(byte[] array)
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(array);
         var newArray = stream.ToArray();
 
@@ -26,7 +20,7 @@ internal class Stream_ToArrayTests(Type type)
     [TestCaseSource(nameof(GetArraysVariedBySize))]
     public void ToArray_Offset(byte[] array)
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         int index = 0;
         int count = array.Length;
 

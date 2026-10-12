@@ -4,19 +4,13 @@ using FluentAssertions;
 
 namespace Eryri.Buffers.Tests.MemoryStreamTests;
 
-[TestFixtureSource(nameof(Types)), Parallelizable(ParallelScope.All)]
-internal class StreamTests(Type type)
+[TestFixture, Parallelizable(ParallelScope.All)]
+internal class StreamTests
 {
-    public static IEnumerable<TestFixtureData> Types()
-    {
-        yield return new TestFixtureData(typeof(MemoryPoolStream));
-        yield return new TestFixtureData(typeof(SequenceStream));
-    }
-
     [Test]
     public void Constructor_ShouldCreateEmptyStream()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Length.Should().Be(0);
         stream.Position.Should().Be(0);
         stream.CanRead.Should().BeTrue();
@@ -27,7 +21,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Write_ShouldAdvancePositionAndLength()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         byte[] data = [1, 2, 3, 4, 5];
 
         stream.Write(data);
@@ -39,7 +33,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Read_ShouldReturnWrittenData()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         byte[] expected = [1, 2, 3, 4, 5];
         stream.Write(expected);
         stream.Position = 0;
@@ -55,7 +49,7 @@ internal class StreamTests(Type type)
     [Test]
     public void ReadAtEnd_ShouldReturnZero()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.WriteByte(42);
 
         var result = stream.ReadByte();
@@ -66,7 +60,7 @@ internal class StreamTests(Type type)
     [Test]
     public void ReadByte_ShouldReturnWrittenByte()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.WriteByte(42);
         stream.Position = 0;
 
@@ -77,7 +71,7 @@ internal class StreamTests(Type type)
     [Test]
     public void WriteByte_ShouldWriteSingleByte()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.WriteByte(42);
 
         stream.Position.Should().Be(1);
@@ -90,7 +84,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Write_ShouldOverwriteExistingData()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[] { 1, 2, 3, 4, 5 });
         stream.Position = 1;
 
@@ -106,7 +100,7 @@ internal class StreamTests(Type type)
     [Test]
     public void WriteBeyondLength_ShouldZeroFillGap()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[] { 1, 2, 3 });
         stream.Position = 6;
 
@@ -121,7 +115,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SeekBeyondEnd_ShouldNotChangeLength()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Position = 100;
 
         stream.Position.Should().Be(100);
@@ -131,7 +125,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Seek_ShouldSupportAllOrigins()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[10]);
 
         stream.Seek(3, SeekOrigin.Begin).Should().Be(3);
@@ -142,7 +136,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SeekToNegativePosition_ShouldThrow()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var act = () => stream.Seek(-1, SeekOrigin.Begin);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -151,7 +145,7 @@ internal class StreamTests(Type type)
     [Test]
     public void PositionNegative_ShouldThrow()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var act = () => stream.Position = -1;
 
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -160,7 +154,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldExtendAndZeroFill()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[] { 1, 2, 3 });
 
         stream.SetLength(6);
@@ -174,7 +168,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldTruncateStream()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[] { 1, 2, 3, 4, 5 });
 
         stream.SetLength(3);
@@ -189,7 +183,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldClampPosition()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[10]);
         stream.Position = 8;
 
@@ -201,7 +195,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldZeroPreviouslyWrittenDataWhenExtendedAgain()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         stream.Write(new byte[] { 1, 2, 3, 4, 5 });
         stream.SetLength(2);
         stream.SetLength(5);
@@ -214,7 +208,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Write_ShouldGrowCapacityForLargeData()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var data = Enumerable.Range(0, 100_000)
             .Select(i => (byte)(i % 256))
             .ToArray();
@@ -230,7 +224,7 @@ internal class StreamTests(Type type)
     [Test]
     public void ReadAndWrite_ShouldCrossSegmentBoundaries()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var data = Enumerable.Range(0, 20_000)
             .Select(i => (byte)(i % 256))
             .ToArray();
@@ -247,7 +241,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Flush_ShouldNotThrow()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var act = () => stream.Flush();
 
         act.Should().NotThrow();
@@ -256,7 +250,7 @@ internal class StreamTests(Type type)
     [Test]
     public void DisposedStream_ShouldRejectOperations()
     {
-        var stream = (Activator.CreateInstance(type) as Stream)!;
+        var stream = new MemoryPoolStream();
         stream.Dispose();
 
         stream.CanRead.Should().BeFalse();
@@ -275,7 +269,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Dispose_ShouldBeIdempotent()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
         var act = () =>
         {
             stream.Dispose();
@@ -288,7 +282,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Write_ShouldCrossMultipleSegments()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var data = Enumerable.Range(0, 100_000)
             .Select(i => (byte)(i % 251))
@@ -305,7 +299,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Read_ShouldCrossMultipleSegmentsFromNonZeroPosition()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var data = Enumerable.Range(0, 100_000)
             .Select(i => (byte)(i % 251))
@@ -325,7 +319,7 @@ internal class StreamTests(Type type)
     [Test]
     public void Write_ShouldOverwriteAcrossMultipleSegments()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var original = Enumerable.Repeat((byte)1, 100_000).ToArray();
         var replacement = Enumerable.Repeat((byte)2, 20_000).ToArray();
@@ -347,7 +341,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldExtendAcrossMultipleSegmentsAndZeroFill()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         stream.Write(new byte[] { 1, 2, 3 });
 
@@ -365,7 +359,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldTruncateAcrossMultipleSegments()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var data = Enumerable.Range(0, 100_000)
             .Select(i => (byte)(i % 251))
@@ -384,7 +378,7 @@ internal class StreamTests(Type type)
     [Test]
     public void SetLength_ShouldTruncateAndReextendAcrossMultipleSegments()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var data = Enumerable.Repeat((byte)0xFF, 100_000).ToArray();
         stream.Write(data);
@@ -404,7 +398,7 @@ internal class StreamTests(Type type)
     [Test]
     public void WriteBeyondEnd_ShouldZeroFillAcrossMultipleSegments()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         stream.Write(new byte[] { 1, 2, 3 });
         stream.Position = 50_000;
@@ -423,7 +417,7 @@ internal class StreamTests(Type type)
     [Test]
     public void ReadByte_ShouldReadCorrectlyAcrossSegmentBoundaries()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         var data = Enumerable.Range(0, 100_000)
             .Select(i => (byte)(i % 251))
@@ -443,7 +437,7 @@ internal class StreamTests(Type type)
     [Test]
     public void WriteByte_ShouldWriteCorrectlyAcrossSegmentBoundaries()
     {
-        using var stream = (Activator.CreateInstance(type) as Stream)!;
+        using var stream = new MemoryPoolStream();
 
         const int length = 50_000;
 

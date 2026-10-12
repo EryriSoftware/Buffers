@@ -9,7 +9,7 @@ namespace Eryri.Buffers;
 /// <remarks>
 /// Supports random-access reads and writes. Seeking beyond the end does not
 /// change the stream length; writing beyond the end fills the gap with zeroes.
-/// The maximum stream length is <see cref="int.MaxValue"/>, use <see cref="SequenceStream" /> if you need a larger buffer.
+/// The maximum stream length is <see cref="int.MaxValue"/>.
 /// This stream is not thread-safe.
 /// </remarks>
 public class MemoryPoolStream : Stream
