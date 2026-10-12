@@ -17,14 +17,15 @@ public class MemoryPoolStream : Stream
     private const int MinimumBufferSize = 256;
 
     private byte[] _rentedBuffer;
-    private int _length = 0;
-    private int _position = 0;
-    private bool _isOpen = true;
+    private readonly bool _clearOnReturn;
+    private int _length;
+    private int _position;
+    private bool _isDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MemoryPoolStream"/> class.
     /// </summary>
-    public MemoryPoolStream() : this(MinimumBufferSize)
+    public MemoryPoolStream(bool clearOnReturn = false) : this(MinimumBufferSize, clearOnReturn)
     {
     }
 
@@ -32,23 +33,25 @@ public class MemoryPoolStream : Stream
     /// Initializes a new instance of the <see cref="MemoryPoolStream"/> class with the specified initial capacity.
     /// </summary>
     /// <param name="initialCapacity">The minimum initial capacity.</param>
+    /// <param name="clearOnReturn">Decides if the rented arrays are cleared when they're returned to the pool.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="initialCapacity"/> is not positive.
     /// </exception>
-    public MemoryPoolStream(int initialCapacity)
+    public MemoryPoolStream(int initialCapacity, bool clearOnReturn = false)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(initialCapacity);
         _rentedBuffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+        _clearOnReturn = clearOnReturn;
     }
 
     /// <inheritdoc />
-    public override bool CanRead => _isOpen;
+    public override bool CanRead => !_isDisposed;
 
     /// <inheritdoc />
-    public override bool CanSeek => _isOpen;
+    public override bool CanSeek => !_isDisposed;
 
     /// <inheritdoc />
-    public override bool CanWrite => _isOpen;
+    public override bool CanWrite => !_isDisposed;
 
     /// <summary>
     /// Gets or sets the capacity (number of bytes allocated) for this stream.
@@ -59,12 +62,12 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             return _rentedBuffer.Length;
         }
         set
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             ArgumentOutOfRangeException.ThrowIfLessThan(value, _length);
             EnsureCapacity(value);
         }
@@ -75,7 +78,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             return _length;
         }
     }
@@ -85,21 +88,21 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             return _position;
         }
         set
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(value, int.MaxValue);
-            EnsureNotClosed();
+            EnsureNotDisposed();
 
             _position = (int)value;
         }
     }
 
     /// <inheritdoc />
-    public override void Flush() => EnsureNotClosed();
+    public override void Flush() => EnsureNotDisposed();
 
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
@@ -111,7 +114,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override int Read(Span<byte> buffer)
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
 
         int count = Math.Clamp(_length - _position, 0, buffer.Length);
 
@@ -124,7 +127,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override int ReadByte()
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
 
         return _position < _length
             ? _rentedBuffer[_position++]
@@ -138,7 +141,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             return _rentedBuffer.AsSpan(0, _length);
         }
     }
@@ -150,7 +153,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotClosed();
+            EnsureNotDisposed();
             return _rentedBuffer.AsMemory().Slice(0, _length);
         }
     }
@@ -158,7 +161,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin)
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
 
         long position = origin switch
         {
@@ -178,7 +181,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void SetLength(long value)
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
         ArgumentOutOfRangeException.ThrowIfNegative(value);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, int.MaxValue);
 
@@ -199,7 +202,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void Write(ReadOnlySpan<byte> buffer)
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
         var end = PrepareWrite(buffer.Length);
 
         buffer.CopyTo(_rentedBuffer.AsSpan(_position, buffer.Length));
@@ -211,7 +214,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void WriteByte(byte value)
     {
-        EnsureNotClosed();
+        EnsureNotDisposed();
         var end = PrepareWrite(1);
 
         _rentedBuffer[_position] = value;
@@ -251,19 +254,19 @@ public class MemoryPoolStream : Stream
             Debug.Assert(_rentedBuffer.Length >= _length);
 
             oldBuffer.AsSpan(0, _length).CopyTo(_rentedBuffer);
-            ArrayPool<byte>.Shared.Return(oldBuffer);
+            ArrayPool<byte>.Shared.Return(oldBuffer, _clearOnReturn);
         }
     }
 
-    private void EnsureNotClosed() => ObjectDisposedException.ThrowIf(!_isOpen, this);
+    private void EnsureNotDisposed() => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
-        if (disposing && _isOpen)
+        if (disposing && !_isDisposed)
         {
-            _isOpen = false;
-            ArrayPool<byte>.Shared.Return(_rentedBuffer);
+            _isDisposed = true;
+            ArrayPool<byte>.Shared.Return(_rentedBuffer, _clearOnReturn);
             _rentedBuffer = Array.Empty<byte>();
         }
 
