@@ -27,7 +27,7 @@ public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
         using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
-        using var memStream = new MemoryPoolStream(100);
+        using var memStream = new MemoryPoolStream();
 
         output.WrittenCount.Should().Be(100);
 
@@ -75,7 +75,7 @@ public class ArrayPoolBufferWriterTests_Byte : ArrayPoolBufferWriterTests<byte>
         using var output = new ArrayPoolBufferWriter<byte>();
         WriteData(output, 100);
 
-        using var memStream = new MemoryPoolStream(100);
+        using var memStream = new MemoryPoolStream();
 
         output.WrittenCount.Should().Be(100);
 

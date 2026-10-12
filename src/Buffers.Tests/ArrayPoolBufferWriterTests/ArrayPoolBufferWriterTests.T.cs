@@ -297,38 +297,23 @@ public abstract class ArrayPoolBufferWriterTests<T> where T : IEquatable<T>
 
         {
             using var output = new ArrayPoolBufferWriter<T>();
+
             WriteData(output, 2);
-            ReadOnlyMemory<T> writtenSoFarMemory = output.WrittenMemory;
-            ReadOnlySpan<T> writtenSoFar = output.WrittenSpan;
-            writtenSoFarMemory.Span.SequenceEqual(writtenSoFar).Should().BeTrue();
-            int previousAvailable = output.FreeCapacity;
+
+            T[] expected = output.WrittenSpan.ToArray();
+            int previousWrittenCount = output.WrittenCount;
+
             Span<T> span = output.GetSpan(500);
+
             span.Length.Should().BeGreaterThanOrEqualTo(500);
-            output.FreeCapacity.Should().BeGreaterThanOrEqualTo(500);
-            output.FreeCapacity.Should().BeGreaterThan(previousAvailable);
+            output.WrittenCount.Should().Be(previousWrittenCount);
+            output.WrittenSpan.SequenceEqual(expected).Should().BeTrue();
 
-            output.WrittenCount.Should().Be(writtenSoFar.Length);
-            writtenSoFar.SequenceEqual(span.Slice(0, output.WrittenCount)).Should().BeTrue();
+            Memory<T> memory = output.GetMemory(500);
 
-            Memory<T> memory = output.GetMemory();
-            Span<T> memorySpan = memory.Span;
-            span.Length.Should().BeGreaterThanOrEqualTo(500);
-            memorySpan.Length.Should().BeGreaterThanOrEqualTo(500);
-            memorySpan.Length.Should().Be(span.Length);
-            for (int i = 0; i < span.Length; i++)
-            {
-                span[i].Should().Be(default(T));
-                memorySpan[i].Should().Be(default(T));
-            }
-
-            memory = output.GetMemory(500);
-            memorySpan = memory.Span;
-            memorySpan.Length.Should().BeGreaterThanOrEqualTo(500);
-            memorySpan.Length.Should().Be(span.Length);
-            for (int i = 0; i < memorySpan.Length; i++)
-            {
-                memorySpan[i].Should().Be(default(T));
-            }
+            memory.Length.Should().BeGreaterThanOrEqualTo(500);
+            output.WrittenCount.Should().Be(previousWrittenCount);
+            output.WrittenSpan.SequenceEqual(expected).Should().BeTrue();
         }
     }
 

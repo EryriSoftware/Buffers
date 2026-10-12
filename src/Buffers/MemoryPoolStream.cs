@@ -9,8 +9,8 @@ namespace Eryri.Buffers;
 /// <remarks>
 /// Supports random-access reads and writes. Seeking beyond the end does not
 /// change the stream length; writing beyond the end fills the gap with zeroes.
-/// The maximum stream length is <see cref="int.MaxValue"/>. This stream is
-/// not thread-safe.
+/// The maximum stream length is <see cref="int.MaxValue"/>, use <see cref="SequenceStream" /> if you need a larger buffer.
+/// This stream is not thread-safe.
 /// </remarks>
 public class MemoryPoolStream : Stream
 {
@@ -25,6 +25,14 @@ public class MemoryPoolStream : Stream
     /// <summary>
     /// Initializes a new instance of the <see cref="MemoryPoolStream"/> class.
     /// </summary>
+    public MemoryPoolStream() : this(MinimumBufferSize, false)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MemoryPoolStream"/> class.
+    /// </summary>
+    /// <param name="clearOnReturn">Decides if the rented arrays are cleared when they're returned to the pool.</param>
     public MemoryPoolStream(bool clearOnReturn = false) : this(MinimumBufferSize, clearOnReturn)
     {
     }
@@ -62,12 +70,12 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             return _rentedBuffer.Length;
         }
         set
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             ArgumentOutOfRangeException.ThrowIfLessThan(value, _length);
             EnsureCapacity(value);
         }
@@ -78,7 +86,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             return _length;
         }
     }
@@ -88,21 +96,21 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             return _position;
         }
         set
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(value, int.MaxValue);
-            EnsureNotDisposed();
+            ThrowIfDisposed();
 
             _position = (int)value;
         }
     }
 
     /// <inheritdoc />
-    public override void Flush() => EnsureNotDisposed();
+    public override void Flush() => ThrowIfDisposed();
 
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
@@ -114,7 +122,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override int Read(Span<byte> buffer)
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
 
         int count = Math.Clamp(_length - _position, 0, buffer.Length);
 
@@ -127,7 +135,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override int ReadByte()
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
 
         return _position < _length
             ? _rentedBuffer[_position++]
@@ -141,7 +149,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             return _rentedBuffer.AsSpan(0, _length);
         }
     }
@@ -153,7 +161,7 @@ public class MemoryPoolStream : Stream
     {
         get
         {
-            EnsureNotDisposed();
+            ThrowIfDisposed();
             return _rentedBuffer.AsMemory().Slice(0, _length);
         }
     }
@@ -161,13 +169,13 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin)
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
 
         long position = origin switch
         {
             SeekOrigin.Begin => offset,
-            SeekOrigin.Current => _position + offset,
-            SeekOrigin.End => _length + offset,
+            SeekOrigin.Current => checked(_position + offset),
+            SeekOrigin.End => checked(_length + offset),
             _ => throw new ArgumentException("Invalid seek origin.", nameof(origin))
         };
 
@@ -181,7 +189,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void SetLength(long value)
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
         ArgumentOutOfRangeException.ThrowIfNegative(value);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, int.MaxValue);
 
@@ -202,7 +210,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void Write(ReadOnlySpan<byte> buffer)
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
         var end = PrepareWrite(buffer.Length);
 
         buffer.CopyTo(_rentedBuffer.AsSpan(_position, buffer.Length));
@@ -214,7 +222,7 @@ public class MemoryPoolStream : Stream
     /// <inheritdoc />
     public override void WriteByte(byte value)
     {
-        EnsureNotDisposed();
+        ThrowIfDisposed();
         var end = PrepareWrite(1);
 
         _rentedBuffer[_position] = value;
@@ -258,7 +266,7 @@ public class MemoryPoolStream : Stream
         }
     }
 
-    private void EnsureNotDisposed() => ObjectDisposedException.ThrowIf(_isDisposed, this);
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)

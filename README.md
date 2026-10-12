@@ -9,6 +9,7 @@
 
 * **Build payloads efficiently** with `ArrayPoolBufferWriter<T>`.
 * **Buffer stream output** with `MemoryPoolStream`, backed by `ArrayPool<byte>`.
+* **Buffer stream output** with `SequenceStream`, backed by `ArrayPool<byte>`, when the data length is larger than `int.MaxValue`.
 * **Read and write binary primitives** without a serializer framework or intermediate byte arrays.
 * **Define your own wire format**, including field order, string encoding and versioning.
 
@@ -29,13 +30,14 @@ using Eryri.Buffers.Extensions;
 
 ## Choose your buffer
 
-| Need                                                         | Use                             |
-| ------------------------------------------------------------ | ------------------------------- |
-| Build a binary payload with direct access to writable memory | `ArrayPoolBufferWriter<byte>` |
-| Use a seekable, growable in-memory stream                    | `MemoryPoolStream`              |
-| Write binary values to an existing stream                    | Stream extensions               |
-| Parse binary data without a reader object                    | `ReadOnlySpan<byte>` extensions |
-| Write to any `IBufferWriter<byte>`                           | Buffer-writer extensions        |
+| Need                                                                    | Use                             |
+| ------------------------------------------------------------------------| ------------------------------- |
+| Build a binary payload with direct access to writable memory            | `ArrayPoolBufferWriter<byte>`   |
+| Use a seekable, growable in-memory stream                               | `MemoryPoolStream`              |
+| Use a seekable, growable in-memory stream, not limited by `int.MaxValue`| `SequenceStream`                |
+| Write binary values to an existing stream                               | Stream extensions               |
+| Parse binary data without a reader object                               | `ReadOnlySpan<byte>` extensions |
+| Write to any `IBufferWriter<byte>`                                      | Buffer-writer extensions        |
 
 ## Build a binary payload
 

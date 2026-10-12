@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 
-namespace Eryri.Buffers.Tests.MemoryPoolStreamTests;
+namespace Eryri.Buffers.Tests.MemoryStreamTests;
 
 [TestFixture, Parallelizable(ParallelScope.All)]
 internal class MemoryPoolStreamTests
@@ -12,7 +12,6 @@ internal class MemoryPoolStreamTests
         {
             Span<byte> bytArr = new byte[] { byte.MinValue, byte.MaxValue, 1, 2, 3, 4, 5, 6, 128, 250 };
 
-            // [] Write to FileStream, check the filestream
             ms.Write(bytArr);
             var bytArrRet = ms.WrittenSpan;
 
@@ -31,7 +30,6 @@ internal class MemoryPoolStreamTests
         {
             Span<byte> bytArr = new byte[] { byte.MinValue, byte.MaxValue, 1, 2, 3, 4, 5, 6, 128, 250 };
 
-            // [] Write to FileStream, check the filestream
             ms.Write(bytArr);
             var bytArrRet = ms.WrittenMemory;
 
